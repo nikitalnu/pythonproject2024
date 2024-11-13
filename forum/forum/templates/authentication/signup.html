@@ -1,0 +1,65 @@
+{% extends 'authentication/layout.html' %}
+{% block title %}Sign up{% endblock %}
+{% block body %}
+
+
+{% for field in form %}
+  {% if field.errors %}
+    <div class="alert alert-warning w-25 mx-auto position-absolute start-50 translate-middle-x z-1" role="alert">
+      <small>{{field.errors}}</small>
+      <button type="button" class="btn-close position-absolute top-0 end-0" data-bs-dismiss="alert" aria-label="Close" onclick="return closenotif()"></button>
+    </div>
+  {% endif %}
+{%endfor%}
+<div class="container position-relative">
+  <div class="row align-items-center">
+    <div class="col"></div>
+    <div class="col">
+      <form method="post" action="" id="sign">
+      {% csrf_token %}
+      {% for field in form %}
+        {% if field %}
+          <div class="form-floating mt-2 mb-2">
+            {{field}}
+              <label for="{{ field.id }}">{{ field.label}}</label>
+          </div>
+        {% endif %}
+      {%endfor%}
+      </form>
+    </div>
+  <div class="col">
+    <div>
+    </div>
+    <div >
+      {% for field in form %}
+        {% if field.help_text %}
+          <div class="alert alert-light" role="alert">
+            <small><small>{{field.help_text}}</small></small>
+          </div>
+        {% endif %}
+      {%endfor%}
+    </div>
+                  
+                  
+  </div>
+  <div class="col"></div>
+  </div>
+</div>
+<div class="row w-100">
+  <button form="sign" class="btn btn-primary mx-auto w-25 mt-3"><i class="fa fa-user" aria-hidden="true"></i>&nbsp;Sign up</button>
+</div>
+<style>
+  .container {
+      margin-top: 15vh;
+  }
+  .notification{
+    margin-top: 1vh;
+  }
+</style>
+<script>
+  alert = document.getElementById('alert')
+  function closenotif(){
+      alert.classList.add("visually-hidden")
+  }
+</script>
+{% endblock %}

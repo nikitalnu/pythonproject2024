@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en"class="has-background-black-ter" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js" integrity="sha384-mQ93GR66B00ZXjt0YO5KlohRA5SY2XofN4zfuZxLkoj1gXtW8ANNCe9d5Y3eG5eD" crossorigin="anonymous"></script>
+
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="{%url 'home'%}"><i class="fa fa-terminal" aria-hidden="true"></i></a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              
+              <!-- Theme -->
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Themes
+                </a>
+                <ul class="dropdown-menu">
+                  {%if themes|length == 0 %}
+                    <li><a class="dropdown-item disabled">No themes yet</a></li>
+                  {%endif%}
+                    {%for theme in themes%}
+                      <li><a class="dropdown-item" href="/{{theme}}">{{theme}}</a></li>
+                    {%endfor%}
+
+
+                </ul>
+              </li>
+
+              <!-- Action -->
+
+
+              <li class="nav-item dropdown">
+                  {% if user.is_authenticated%}
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Actions
+                </a>
+                  {%endif%}
+                <ul class="dropdown-menu">
+
+                  <li><a class="dropdown-item" href="{%url 'creatediscussion'%}">Create Discussion</a></li>
+                  {% if user.is_superuser%}
+                  <li><a class="dropdown-item" href="{%url 'createtheme'%}">Create Theme</a></li>
+                  {%endif%}
+                </ul>
+              </li>
+            </ul>
+            <div class="mx-auto">
+              <h5>
+                {{page}}
+              </h5>
+            </div>
+            <form class="d-flex" role="search" method="post" action="{% url 'search' %}">
+              {% csrf_token %}
+              <input class="form-control me-2" type="search" name="searchfor" placeholder="Search discussions"  aria-label="Search">
+              <button class="btn btn-outline-success me-md-3" type="submit">Search</button>
+            </form>
+            <br>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end align-items-center">
+              {% if user.is_authenticated%}
+              <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    {{user.get_username }}
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-lg-end">
+                    <li><a href="{%url 'notifications'%}" class="dropdown-item" type="button"><i class="fa fa-bell" aria-hidden="true"></i> Notifications</a></li>
+                  </ul>
+                </div>
+              {% if user.is_superuser %}
+              <button onclick="window.location.href='/admin'" class="btn btn-primary" type="button"><i class="fa fa-cog" aria-hidden="true"></i></button>
+              {% endif %}
+              <button onclick="window.location.href='/logout'" class="btn btn-primary" type="button"><i class="fa fa-sign-out" aria-hidden="true"></i></button>
+              {% else %}
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button onclick="window.location.href='/signup'" class="btn btn-primary " type="button"><i class="fa fa-user" aria-hidden="true"></i>&nbsp;Sign up</button>
+                <button onclick="window.location.href='/login'" class="btn btn-primary " type="button"><i class="fa fa-sign-in" aria-hidden="true"></i>&nbsp;Log in</button>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </nav>  
+      {% for message in messages %}
+        <div {% if message.tags %} class="z-2 alert alert-{{ message.tags }} alert-dismissible fade show w-25 mx-auto position-absolute top-5 start-50 translate-middle-x"{% endif %} role="alert"  >
+          {{message}}&nbsp;
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="return closenotif()"></button>
+        </div>
+  {% endfor %}
+    {% block body %}
+
+    {% endblock %}
+    <!-- Pagination for discussions -->
+    {%if discussions.paginator.num_pages > 1%}
+    <nav>
+      <ul class="pagination justify-content-center">
+          {%if discussions.has_previous%}
+          <li class="page-item">
+              <a class="page-link" href="?pg=1" aria-label="Previous">
+                  <span aria-hidden="true">&laquo; First</span>
+              </a>
+          </li>
+          <li class="page-item">
+              <a class="page-link" href="?pg={{discussions.previous_page_number}}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+              </a>
+          </li>
+          <li class="page-item"><a class="page-link" href="?pg={{discussions.previous_page_number}}">{{discussions.previous_page_number}}</a></li>
+          {%endif%}
+
+        <li class="page-item"><a class="page-link active"><sup>{{discussions.number}}</sup>/<sub>{{discussions.paginator.num_pages}}</sub> </a></li>
+        {%if discussions.has_next%}
+        <li class="page-item"><a class="page-link" href="?pg={{discussions.next_page_number}}">{{discussions.next_page_number}}</a></li>
+        <li class="page-item">
+            <a class="page-link" href="?pg={{discussions.next_page_number}}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+          </li>
+          <li class="page-item">
+              <a class="page-link" href="?pg={{discussions.paginator.num_pages}}" aria-label="Next">
+                  <span aria-hidden="true">Last &raquo;</span>
+              </a>
+          </li>
+          {%endif%}
+      </ul>
+    </nav>
+    {%endif%}
+    <!-- Pagination for notifications -->
+    {%if notifications.paginator.num_pages > 1%}
+    <nav>
+      <ul class="pagination justify-content-center">
+          {%if notifications.has_previous%}
+          <li class="page-item">
+              <a class="page-link" href="?pg=1" aria-label="Previous">
+                  <span aria-hidden="true">&laquo; First</span>
+              </a>
+          </li>
+          <li class="page-item">
+              <a class="page-link" href="?pg={{notifications.previous_page_number}}" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+              </a>
+          </li>
+          <li class="page-item"><a class="page-link" href="?pg={{notifications.previous_page_number}}">{{notifications.previous_page_number}}</a></li>
+          {%endif%}
+
+        <li class="page-item"><a class="page-link active"><sup>{{notifications.number}}</sup>/<sub>{{notifications.paginator.num_pages}}</sub> </a></li>
+        {%if notifications.has_next%}
+        <li class="page-item"><a class="page-link" href="?pg={{notifications.next_page_number}}">{{notifications.next_page_number}}</a></li>
+        <li class="page-item">
+            <a class="page-link" href="?pg={{notifications.next_page_number}}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+          </li>
+          <li class="page-item">
+              <a class="page-link" href="?pg={{notifications.paginator.num_pages}}" aria-label="Next">
+                  <span aria-hidden="true">Last &raquo;</span>
+              </a>
+          </li>
+          {%endif%}
+      </ul>
+    </nav>
+    {%endif%}
+</body>
+<script>
+  alert = document.getElementById('alert')
+  function closenotif(){
+      alert.classList.add("visually-hidden")
+  }
+</script>
